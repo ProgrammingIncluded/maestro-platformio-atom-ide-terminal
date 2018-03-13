@@ -12,7 +12,7 @@ lastOpenedView = null
 lastActiveElement = null
 
 module.exports =
-class PlatformIOTerminalView extends View
+class MaestroPlatformIOTerminalView extends View
   animating: false
   id: ''
   maximized: false
@@ -24,7 +24,7 @@ class PlatformIOTerminalView extends View
   tabView: false
 
   @content: ->
-    @div class: 'platformio-ide-terminal terminal-view', outlet: 'platformIOTerminalView', =>
+    @div class: 'maestro-platformio-ide-terminal terminal-view', outlet: 'platformIOTerminalView', =>
       @div class: 'panel-divider', outlet: 'panelDivider'
       @section class: 'input-block', =>
         @div class: 'btn-toolbar', =>
@@ -52,7 +52,7 @@ class PlatformIOTerminalView extends View
     @inputBtn.tooltip = atom.tooltips.add @inputBtn,
       title: 'Insert Text'
 
-    @prevHeight = atom.config.get('platformio-ide-terminal.style.defaultPanelHeight')
+    @prevHeight = atom.config.get('maestro-platformio-ide-terminal.style.defaultPanelHeight')
     if @prevHeight.indexOf('%') > 0
       percent = Math.abs(Math.min(parseFloat(@prevHeight) / 100.0, 1))
       bottomHeight = $('atom-panel.bottom').children(".terminal-view").height() or 0
@@ -60,17 +60,17 @@ class PlatformIOTerminalView extends View
     @xterm.height 0
 
     @setAnimationSpeed()
-    @subscriptions.add atom.config.onDidChange 'platformio-ide-terminal.style.animationSpeed', @setAnimationSpeed
+    @subscriptions.add atom.config.onDidChange 'maestro-platformio-ide-terminal.style.animationSpeed', @setAnimationSpeed
 
     override = (event) ->
-      return if event.originalEvent.dataTransfer.getData('platformio-ide-terminal') is 'true'
+      return if event.originalEvent.dataTransfer.getData('maestro-platformio-ide-terminal') is 'true'
       event.preventDefault()
       event.stopPropagation()
 
     @xterm.on 'mouseup', (event) =>
       if event.which != 3
         text = window.getSelection().toString()
-        if atom.config.get('platformio-ide-terminal.toggles.selectToCopy') and text
+        if atom.config.get('maestro-platformio-ide-terminal.toggles.selectToCopy') and text
           rawLines = text.split(/\r?\n/g)
           lines = rawLines.map (line) ->
             line.replace(/\s/g, " ").trimRight()
@@ -86,7 +86,7 @@ class PlatformIOTerminalView extends View
     @subscriptions.add dispose: =>
       @off 'focus', @focus
 
-    if /zsh|bash/.test(@shell) and @args.indexOf('--login') == -1 and Pty.platform isnt 'win32' and atom.config.get('platformio-ide-terminal.toggles.loginShell')
+    if /zsh|bash/.test(@shell) and @args.indexOf('--login') == -1 and Pty.platform isnt 'win32' and atom.config.get('maestro-platformio-ide-terminal.toggles.loginShell')
       @args.unshift '--login'
 
   attach: ->
@@ -94,7 +94,7 @@ class PlatformIOTerminalView extends View
     @panel = atom.workspace.addBottomPanel(item: this, visible: false)
 
   setAnimationSpeed: =>
-    @animationSpeed = atom.config.get('platformio-ide-terminal.style.animationSpeed')
+    @animationSpeed = atom.config.get('maestro-platformio-ide-terminal.style.animationSpeed')
     @animationSpeed = 100 if @animationSpeed is 0
 
     @xterm.css 'transition', "height #{0.25 / @animationSpeed}s linear"
@@ -127,7 +127,7 @@ class PlatformIOTerminalView extends View
 
     @terminal = new Terminal {
       cursorBlink     : false
-      scrollback      : atom.config.get 'platformio-ide-terminal.core.scrollback'
+      scrollback      : atom.config.get 'maestro-platformio-ide-terminal.core.scrollback'
       cols, rows
     }
 
@@ -137,18 +137,18 @@ class PlatformIOTerminalView extends View
     @terminal.open @xterm.get(0)
 
   attachListeners: ->
-    @ptyProcess.on "platformio-ide-terminal:data", (data) =>
+    @ptyProcess.on "maestro-platformio-ide-terminal:data", (data) =>
       @terminal.write data
 
-    @ptyProcess.on "platformio-ide-terminal:exit", =>
-      @destroy() if atom.config.get('platformio-ide-terminal.toggles.autoClose')
+    @ptyProcess.on "maestro-platformio-ide-terminal:exit", =>
+      @destroy() if atom.config.get('maestro-platformio-ide-terminal.toggles.autoClose')
 
     @terminal.end = => @destroy()
 
     @terminal.on "data", (data) =>
       @input data
 
-    @ptyProcess.on "platformio-ide-terminal:title", (title) =>
+    @ptyProcess.on "maestro-platformio-ide-terminal:title", (title) =>
       @process = title
     @terminal.on "title", (title) =>
       @title = title
@@ -158,7 +158,7 @@ class PlatformIOTerminalView extends View
       @resizeTerminalToView()
 
       return unless @ptyProcess.childProcess?
-      autoRunCommand = atom.config.get('platformio-ide-terminal.core.autoRunCommand')
+      autoRunCommand = atom.config.get('maestro-platformio-ide-terminal.core.autoRunCommand')
       @input "#{autoRunCommand}#{os.EOL}" if autoRunCommand
       @input "#{command}#{os.EOL}" for command in @autoRun
 
@@ -231,7 +231,7 @@ class PlatformIOTerminalView extends View
         @displayTerminal()
         @prevHeight = @nearestRow(@xterm.height())
         @xterm.height(@prevHeight)
-        @emit "platformio-ide-terminal:terminal-open"
+        @emit "maestro-platformio-ide-terminal:terminal-open"
       else
         @focus()
 
@@ -278,7 +278,7 @@ class PlatformIOTerminalView extends View
   pty: () ->
     if not @opened
       wait = new Promise (resolve, reject) =>
-        @emitter.on "platformio-ide-terminal:terminal-open", () =>
+        @emitter.on "maestro-platformio-ide-terminal:terminal-open", () =>
           resolve()
         setTimeout reject, 1000
 
@@ -290,7 +290,7 @@ class PlatformIOTerminalView extends View
   ptyPromise: () ->
     new Promise (resolve, reject) =>
       if @ptyProcess?
-        @ptyProcess.on "platformio-ide-terminal:pty", (pty) =>
+        @ptyProcess.on "maestro-platformio-ide-terminal:pty", (pty) =>
           resolve(pty)
         @ptyProcess.send {event: 'pty'}
         setTimeout reject, 1000
@@ -298,7 +298,7 @@ class PlatformIOTerminalView extends View
         reject()
 
   applyStyle: ->
-    config = atom.config.get 'platformio-ide-terminal'
+    config = atom.config.get 'maestro-platformio-ide-terminal'
 
     @xterm.addClass config.style.theme
     @xterm.addClass 'cursor-blink' if config.toggles.cursorBlink
@@ -311,7 +311,7 @@ class PlatformIOTerminalView extends View
     @subscriptions.add atom.config.onDidChange 'editor.fontFamily', (event) =>
       editorFont = event.newValue
       @terminal.element.style.fontFamily = overrideFont or editorFont or defaultFont
-    @subscriptions.add atom.config.onDidChange 'platformio-ide-terminal.style.fontFamily', (event) =>
+    @subscriptions.add atom.config.onDidChange 'maestro-platformio-ide-terminal.style.fontFamily', (event) =>
       overrideFont = event.newValue
       @terminal.element.style.fontFamily = overrideFont or editorFont or defaultFont
 
@@ -323,7 +323,7 @@ class PlatformIOTerminalView extends View
       editorFontSize = event.newValue
       @terminal.element.style.fontSize = "#{overrideFontSize or editorFontSize}px"
       @resizeTerminalToView()
-    @subscriptions.add atom.config.onDidChange 'platformio-ide-terminal.style.fontSize', (event) =>
+    @subscriptions.add atom.config.onDidChange 'maestro-platformio-ide-terminal.style.fontSize', (event) =>
       overrideFontSize = event.newValue
       @terminal.element.style.fontSize = "#{overrideFontSize or editorFontSize}px"
       @resizeTerminalToView()
@@ -444,7 +444,7 @@ class PlatformIOTerminalView extends View
 
   insertSelection: (customText) ->
     return unless editor = atom.workspace.getActiveTextEditor()
-    runCommand = atom.config.get('platformio-ide-terminal.toggles.runInsertedText')
+    runCommand = atom.config.get('maestro-platformio-ide-terminal.toggles.runInsertedText')
     selectionText = ''
     if selection = editor.getSelectedText()
       @terminal.stopScrolling()
@@ -551,7 +551,7 @@ class PlatformIOTerminalView extends View
       lastOpenedView = null if lastOpenedView == this
 
   getTitle: ->
-    @statusIcon.getName() or "platformio-ide-terminal"
+    @statusIcon.getName() or "maestro-platformio-ide-terminal"
 
   getIconName: ->
     "terminal"

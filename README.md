@@ -1,4 +1,7 @@
-# PlatformIO IDE Terminal
+#Maestro PlatformIO IDE Terminal
+This is the custom modification for PlatformIO IDE Terminal to support our custom library Maestro.
+
+# Original Description: PlatofrmIO IDE Terminal
 A terminal package for Atom, complete with themes, API and more for [PlatformIO IDE](http://platformio.org/platformio-ide).
 
 ![demo](https://github.com/platformio/platformio-atom-ide-terminal/raw/master/resources/demo.gif)
