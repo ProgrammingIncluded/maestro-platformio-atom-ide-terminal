@@ -3,6 +3,7 @@
 
 Pty = require.resolve './process'
 Terminal = require 'term.js'
+MaestroInterop = require './maestro-interop.coffee';
 InputDialog = null
 
 path = require 'path'
@@ -22,6 +23,7 @@ class MaestroPlatformIOTerminalView extends View
   rowHeight: 20
   shell: ''
   tabView: false
+  maestroInterop: new MaestroInterop()
 
   @content: ->
     @div class: 'maestro-platformio-ide-terminal terminal-view', outlet: 'platformIOTerminalView', =>
@@ -137,7 +139,9 @@ class MaestroPlatformIOTerminalView extends View
     @terminal.open @xterm.get(0)
 
   attachListeners: ->
+    do @maestroInterop.reset
     @ptyProcess.on "maestro-platformio-ide-terminal:data", (data) =>
+      @maestroInterop.transmit data
       @terminal.write data
 
     @ptyProcess.on "maestro-platformio-ide-terminal:exit", =>
